@@ -50,7 +50,7 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
         # 이전 힌트와 관련된 질문인지 검사
         if not is_answer_related_to_hints(previous_hints, question):
             logger.info("✖ 이전 힌트와 관련 없는 질문")
-            raise BadRequestException("이전 힌트와 관련된 대답을 해줘! 힌트로 주어지는 키워들을 토대로 문장을 만들면, 네가 더 오래 기억할 수 있게 될거야.")
+            raise BadRequestException("이전 힌트와 관련된 대답을 해줘! 힌트로 주어지는 키워드들을 토대로 문장을 만들면, 네가 더 오래 기억할 수 있게 될거야.")
 
     # 4) 카운트 증가 및 인덱스 계산
     sessions[session_id]["count"] += 1
