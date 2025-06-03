@@ -25,11 +25,9 @@ logger = logging.getLogger(__name__)
 # ----------------------
 app = FastAPI(on_startup=[init_chroma])
 
-allow_origins = ["localhost:5173", "localhost:5173/step"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[allow_origins],  # 모든 도메인 허용
+    allow_origins=["http://localhost:5173", "http://localhost:5173/step"],  # 모든 도메인 허용
     allow_credentials=True,  # 쿠키, 인증 헤더 허용
     allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST, PUT 등)
     allow_headers=["*"],  # 모든 헤더 허용
