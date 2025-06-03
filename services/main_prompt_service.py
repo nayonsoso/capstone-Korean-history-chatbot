@@ -69,44 +69,58 @@ summary_system_prompt = (
 
 def generate_service_responses(question: str, k_docs: list) -> List[ServiceResponse]:
     user_prompt = f"사용자 질문: {question}\n"
-    response = call_llm_chat_gpt(service_system_prompt, user_prompt, max_tokens)
-
-    raw = response.lstrip('\ufeff').strip()
-    if raw.startswith("```"):
-        import re
-        raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw, count=1)
-        raw = re.sub(r"\n?```$", "", raw, count=1).strip()
-
-    # 최상위가 {…}, {…} 형태면 배열로 감싸기
-    if raw and raw[0] != "[":
-        raw = f"[{raw}]"
-
     from json import JSONDecodeError
-    try:
-        data = json.loads(response)
-    except JSONDecodeError:
-        logger.error("LLM 응답 JSON 파싱 실패: %s", response)
-        raise InternalServerException("LLM 응답이 Json 으로 변환되지 않습니다.")
+    import json
+    import re
+
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        response = call_llm_chat_gpt(service_system_prompt, user_prompt, max_tokens)
+
+        raw = response.lstrip('\ufeff').strip()
+        if raw.startswith("```"):
+            raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw, count=1)
+            raw = re.sub(r"\n?```$", "", raw, count=1).strip()
+
+        # 최상위가 {…}, {…} 형태면 배열로 감싸기
+        if raw and raw[0] != "[":
+            raw = f"[{raw}]"
+
+        try:
+            data = json.loads(raw)
+            break  # 파싱 성공 시 루프 탈출
+        except JSONDecodeError:
+            logger.error("LLM 응답 JSON 파싱 실패 (시도 %d/%d): %s", attempt, max_retries, raw)
+            if attempt == max_retries:
+                raise InternalServerException("LLM 응답이 Json 으로 변환되지 않습니다.")
+            # 파싱 실패 시 같은 프롬프트로 재요청
 
     # data에 있는 것은 ServiceTextResponse에 담고,
     # 그것을 모두 ServiceResponse로 감싸서 반환
     services = [ServiceTextResponse(**item) for item in data]
     return [ServiceResponse(text=s) for s in services]
 
+
 def generate_summary_response(services: List[ServiceTextResponse]) -> SummaryResponse:
-    # 먼저 리스트를 JSON으로 직렬화
+    import json
+    from json import JSONDecodeError
+
+    # 서비스 응답 리스트를 JSON으로 직렬화
     payload = json.dumps([r.model_dump() for r in services], ensure_ascii=False)
     user_prompt = f"json 배열:\n{payload}\n"
-    response = call_llm_chat_gpt(summary_system_prompt, user_prompt, max_tokens)
 
-    from json import JSONDecodeError
-    try:
-        result = json.loads(response)
-    except JSONDecodeError:
-        logger.error("LLM 요약 응답 JSON 파싱 실패: %s", response)
-        raise InternalServerException("LLM 응답이 Json 으로 변환되지 않습니다.")
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        response = call_llm_chat_gpt(summary_system_prompt, user_prompt, max_tokens)
 
-    # result를 SummaryTextResponse로 변환하고,
-    # 그것을 SummaryResponse로 감싸서 반환
+        try:
+            result = json.loads(response)
+            break  # 파싱 성공 시 루프 탈출
+        except JSONDecodeError:
+            logger.error("LLM 요약 응답 JSON 파싱 실패 (시도 %d/%d): %s", attempt, max_retries, response)
+            if attempt == max_retries:
+                raise InternalServerException("LLM 요약 응답이 Json 으로 변환되지 않습니다.")
+            # 파싱 실패 시 같은 프롬프트로 재요청
+
     summary_text = SummaryTextResponse(**result)
     return SummaryResponse(text=summary_text)
