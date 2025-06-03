@@ -69,6 +69,9 @@ def find_k_docs(query: str, k: int = 5) -> dict:
         query_embeddings=[q_emb],
         n_results=k
     )
+    # 문서 내용 출력
+    for i, doc in enumerate(results['documents'][0]):
+        logger.info(f" 문서 {i+1} : {doc}...")
 
     logger.info(f"✔ 검색 완료: {len(results['ids'][0])}개 문서")
     return results
