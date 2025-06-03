@@ -50,7 +50,7 @@ app.include_router(llm_router)
 
 app.include_router(main_router)
 
-allow_origins = ["localhost:5173"]
+allow_origins = ["localhost:5173", "http://localhost:5173/step"]
 
 app.add_middleware(
     CORSMiddleware,
