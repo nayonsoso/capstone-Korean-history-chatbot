@@ -1,6 +1,6 @@
 import logging
 
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
 from exception_handler import BadRequestException, InternalServerException
 from routers.main_router import router as main_router
 from routers.llm_router import router as llm_router
