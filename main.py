@@ -2,6 +2,8 @@ import logging
 
 from fastapi.middleware.cors import CORSMiddleware
 from exception_handler import BadRequestException, InternalServerException
+from routers.test_router import router as test_router
+from routers.chunking_router import router as chunking_router
 from routers.main_router import router as main_router
 from routers.llm_router import router as llm_router
 from routers.chroma_router import router as query_router
@@ -54,7 +56,9 @@ async def internal_server_exception_handler(request: Request, exc: InternalServe
 app.include_router(query_router)
 app.include_router(rag_router)
 app.include_router(llm_router)
-
 app.include_router(main_router)
+
+app.include_router(chunking_router)
+app.include_router(test_router)
 
 logger.info("FastAPI 애플리케이션 초기화 완료")

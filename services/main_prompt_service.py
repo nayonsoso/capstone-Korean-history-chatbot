@@ -130,3 +130,27 @@ def generate_summary_response(services: List[ServiceTextResponse]) -> SummaryRes
 
     summary_text = SummaryTextResponse(**result)
     return SummaryResponse(text=summary_text)
+
+def generate_summary_response_test(services: List[ServiceResponse]) -> SummaryResponse:
+    import json
+    from json import JSONDecodeError
+
+    # 서비스 응답 리스트를 JSON으로 직렬화
+    payload = json.dumps([r.model_dump() for r in services], ensure_ascii=False)
+    user_prompt = f"json 배열:\n{payload}\n"
+
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        response = call_llm_chat_gpt(summary_system_prompt, user_prompt, max_tokens)
+
+        try:
+            result = json.loads(response)
+            break  # 파싱 성공 시 루프 탈출
+        except JSONDecodeError:
+            logger.error("LLM 요약 응답 JSON 파싱 실패 (시도 %d/%d): %s", attempt, max_retries, response)
+            if attempt == max_retries:
+                raise InternalServerException("LLM 요약 응답이 Json 으로 변환되지 않습니다.")
+            # 파싱 실패 시 같은 프롬프트로 재요청
+
+    summary_text = SummaryTextResponse(**result)
+    return SummaryResponse(text=summary_text)
