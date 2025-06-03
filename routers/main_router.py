@@ -74,6 +74,8 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
                 key=SESSION_COOKIE_NAME,
                 value=session_id,
                 httponly=True,
+                secure=True,
+                samesite="none",
             )
         return json_resp
 
