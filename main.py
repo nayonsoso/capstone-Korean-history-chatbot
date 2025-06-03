@@ -50,9 +50,11 @@ app.include_router(llm_router)
 
 app.include_router(main_router)
 
+allow_origins = ["localhost:5173"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 모든 도메인 허용
+    allow_origins=[allow_origins],  # 모든 도메인 허용
     allow_credentials=True,  # 쿠키, 인증 헤더 허용
     allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST, PUT 등)
     allow_headers=["*"],  # 모든 헤더 허용
