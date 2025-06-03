@@ -31,6 +31,7 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
 
     # 2) 세션 조회, 없다면 신규 세션 생성
     session_id = request.cookies.get(SESSION_COOKIE_NAME)
+    logger.info(f"▶ /question 요청: {question}, 세션 ID: {session_id}")
     new_session = False
 
     if not session_id or session_id not in sessions: # 첫 질문
