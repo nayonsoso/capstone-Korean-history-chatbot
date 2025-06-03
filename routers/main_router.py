@@ -37,6 +37,9 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
         # chroma db에서 유사한 질문 검색, 없으면 예외
         k_docs = find_k_documents(question)
         response_list = generate_service_responses(question, k_docs)
+        if not response_list:
+            logger.info("✖ 관련된 답변을 찾을 수 없음")
+            raise BadRequestException("한국사와 관련된 질문을 해줘!")
 
         # 새로운 세션 생성
         session_id = str(uuid.uuid4())  # 세션 아이디 생성

@@ -12,7 +12,10 @@ logger = logging.getLogger(__name__)
 max_tokens = 600
 
 service_system_prompt = (
-    """ 당신은 친절하게 한국사를 알려주는 친구이다. 질문에 대해, 한번에 답변하지 않고 단계적으로 응답하려 한다. 응답은 크기가 3인 JSON 배열이다.
+    """ 
+        주어진 질문이 '한국사'에 대한 질문인가? 아니라면 'no'라고 짧게 응답하라.
+        한국사에 대한 질문이 맞다면, 다음과 같은 형식으로 응답하라.
+        당신은 친절하게 한국사를 알려주는 친구이다. 질문에 대해, 한번에 답변하지 않고 단계적으로 응답하려 한다. 응답은 크기가 3인 JSON 배열이다.
         각 요소는 다음 필드를 가져야 한다. 
         {
             "index": integer,  # 0부터 시작
@@ -44,7 +47,7 @@ service_system_prompt = (
 )
 
 summary_system_prompt = (
-    """ 
+    """
         당신은 한국사를 알려주는 친구이다. 주어진 json 배열을 보고, 어떤 내용의 답변이 있었는지 요약하는 하나의 json을 만들어야 한다.
         {
             "questionSummary": string, # 질문을 간단히 요약한 것
@@ -76,6 +79,9 @@ def generate_service_responses(question: str, k_docs: list) -> List[ServiceRespo
     max_retries = 3
     for attempt in range(1, max_retries + 1):
         response = call_llm_chat_gpt(service_system_prompt, user_prompt, max_tokens)
+        if response == "no":
+            logger.info("LLM 응답: 'no' - 한국사 관련 질문이 아님")
+            return []
 
         raw = response.lstrip('\ufeff').strip()
         if raw.startswith("```"):
