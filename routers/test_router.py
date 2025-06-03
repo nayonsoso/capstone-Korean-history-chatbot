@@ -27,11 +27,15 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
 
 
     summary = generate_summary_response_test(response_list)
-    json_resp = JSONResponse(content=summary.model_dump())
-    return json_resp
+    return JSONResponse(
+        content={
+            "responses": [r.model_dump() for r in response_list],
+            "summary": summary.model_dump(),
+        }
+    )
 
 async def convert_request(request: Request) -> QuestionRequest:
-    if request.url.path == "/question" and request.method.upper() == "POST":
+    if request.url.path == "/test" and request.method.upper() == "POST":
         try:
             payload = await request.json()
             return QuestionRequest(**payload)
