@@ -25,7 +25,6 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
         logger.info("✖ 관련된 답변을 찾을 수 없음")
         raise BadRequestException("한국사와 관련된 질문을 해줘!")
 
-
     summary = generate_summary_response_test(response_list)
     return JSONResponse(
         content={
