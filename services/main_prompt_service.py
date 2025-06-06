@@ -13,15 +13,16 @@ max_tokens = 600
 
 service_system_prompt = (
     """ 
-        주어진 질문이 '한국사'에 대한 질문인가? 아니라면 'no'라고 짧게 응답하라.
-        한국사에 대한 질문이 맞다면, 다음과 같은 형식으로 응답하라.
-        당신은 친절하게 한국사를 알려주는 친구이다. 질문에 대해, 한번에 답변하지 않고 단계적으로 응답하려 한다. 응답은 크기가 3인 JSON 배열이다.
+        당신은 한국사를 알려주는 친구이다.
+        주어지는 '문서'를 기반으로 질문에 답하라. 
+        만약, 주어진 문서에서 답을 찾을 수 없거나, 문서의 내용과 모순되는 질문을 한다면 'no'라고 짧게 응답하라.
+        그게 아니라면, 질문에 대해 한번에 답변하지 않고 단계적으로 응답하려 한다. 응답은 크기가 3인 JSON 배열이다.
         각 요소는 다음 필드를 가져야 한다. 
         {
             "index": integer,  # 0부터 시작
             "summary": string, # 해당 답변 전체를 간략히 요약한 것
-            "question": string, # 사용자의 답변에 좀 더 구체적인 내용으로 답하고, 추가 질문을 한다.
-            "hints": string array # 답변 시 활용할 힌트들
+            "question": string, # 이전 hints를 바탕으로, 이전 질문의 정답이 무엇인지를 구체적으로 말한다. 그리고 추가 질문을 한다.
+            "hints": string array # question의 대한 정답을 키워드 형태로 제시
         }
         추가로 주어지는 '문서'에서 관련된 내용을 찾아 답하면 좋다.
 
@@ -71,10 +72,10 @@ summary_system_prompt = (
 )
 
 def generate_service_responses(question: str, k_docs: list) -> List[ServiceResponse]:
-    user_prompt = f"사용자 질문: {question}\n"
     from json import JSONDecodeError
     import json
     import re
+    user_prompt = f"사용자 질문: {question}\n 문서: {json.dumps(k_docs, ensure_ascii=False)}\n"
 
     max_retries = 3
     for attempt in range(1, max_retries + 1):
