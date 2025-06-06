@@ -1,20 +1,25 @@
+import os
 import glob
 import logging
+from typing import List, Dict
+
+import chromadb
 from chromadb.config import Settings
 from chromadb.errors import NotFoundError
 from sentence_transformers import SentenceTransformer
-import chromadb
-import torch
 
 logger = logging.getLogger(__name__)
 
 # 전역 설정
 COLLECTION_NAME = "k-history"
 EMBED_MODEL_NAME = "intfloat/multilingual-e5-large"
+CHROMA_HOST = "localhost"
+CHROMA_PORT = 8000
 
 # Chroma 클라이언트 및 임베딩 모델 준비
 client = chromadb.HttpClient(
-    host="localhost", port=8000,
+    host=CHROMA_HOST,
+    port=CHROMA_PORT,
     settings=Settings(anonymized_telemetry=False, allow_reset=False)
 )
 embed_model = SentenceTransformer(EMBED_MODEL_NAME)
@@ -31,15 +36,21 @@ def init_chroma():
 
         # data/ 폴더 내 모든 .txt 파일을 읽어서 docs 리스트에 저장
         txt_files = glob.glob("data/*.txt")
-        docs = []
+        docs: List[str] = []
+        metadatas: List[Dict[str, str]] = []
+
         logger.info(f"  • 로드할 텍스트 파일 개수: {len(txt_files)}개")
         for path in txt_files:
-            logger.info(f"    – 파일 읽기 시작: {path}")
+            filename = os.path.basename(path)
+            logger.info(f"    – 파일 읽기 시작: {filename}")
             with open(path, encoding="utf-8") as f:
-                lines = [l.strip() for l in f if l.strip()]
+                lines = [line.strip() for line in f if line.strip()]
             docs.extend(lines)
-            logger.info(f"    – '{path}'에서 {len(lines)}개 문장 로드 완료")
+            metadatas.extend([{"source": filename}] * len(lines))
+            logger.info(f"    – '{filename}'에서 {len(lines)}개 문장 로드 완료")
+
         logger.info(f"  • 총 문장 수: {len(docs)}개")
+        logger.info(f"  • 총 메타데이터 수: {len(metadatas)}개")
 
         # 임베딩
         logger.info("  • 임베딩 생성 중…")
@@ -47,11 +58,14 @@ def init_chroma():
         logger.info("  • 임베딩 생성 완료")
 
         # 컬렉션에 추가
+        ids = [str(i) for i in range(len(docs))] # 각 문서에 대한 고유 ID 생성
+
         logger.info(f"  • ChromaDB에 {len(docs)}개 문서 저장 중…")
         collection.add(
-            ids=[str(i) for i in range(len(docs))],
+            embeddings=embs,
             documents=docs,
-            embeddings=embs
+            metadatas=metadatas,
+            ids=ids
         )
         logger.info("  • 문서 저장 완료")
 
@@ -70,8 +84,12 @@ def find_k_docs(query: str, k: int = 5) -> dict:
         n_results=k
     )
     # 문서 내용 출력
-    for i, doc in enumerate(results['documents'][0]):
-        logger.info(f" 문서 {i+1} : {doc}...")
+    docs_found = results['documents'][0]
+    metadatas_found = results['metadatas'][0]
+    for i, (doc, meta) in enumerate(zip(docs_found, metadatas_found)):
+        # meta 딕셔너리에서 'source' 키로 파일명을 가져옴
+        source_file = meta.get('source', '알 수 없음')
+        logger.info(f" 문서 {i+1} (출처: {source_file}): {doc}")
 
     logger.info(f"✔ 검색 완료: {len(results['ids'][0])}개 문서")
     return results
