@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # 전역 설정
 COLLECTION_NAME = "k-history"
-EMBED_MODEL_NAME = "intfloat/multilingual-e5-large"
+EMBED_MODEL_NAME = "nlpai-lab/KoE5"
 CHROMA_HOST = "localhost"
 CHROMA_PORT = 8000
 
