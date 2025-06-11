@@ -29,7 +29,7 @@ app = FastAPI(on_startup=[init_chroma])
 
 app.add_middleware(
     CORSMiddleware,
-    allowed_origins=[
+    allow_origins=[
         "http://localhost:5173",
         "https://deploy.d2lc1vkynsm8ce.amplifyapp.com",
     ],
