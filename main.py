@@ -29,7 +29,8 @@ app = FastAPI(on_startup=[init_chroma])
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5173/step"],  # 모든 도메인 허용
+    allow_origins=["http://localhost:5173", "http://localhost:5173/step",
+                   "https://deploy.d2lc1vkynsm8ce.amplifyapp.com/", "https://deploy.d2lc1vkynsm8ce.amplifyapp.com/step"],
     allow_credentials=True,  # 쿠키, 인증 헤더 허용
     allow_methods=["*"],  # 모든 HTTP 메서드 허용 (GET, POST, PUT 등)
     allow_headers=["*"],  # 모든 헤더 허용
