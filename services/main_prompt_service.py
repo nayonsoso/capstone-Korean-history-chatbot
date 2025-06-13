@@ -72,7 +72,7 @@ summary_system_prompt = (
     """
 )
 
-def generate_service_responses(question: str, k_docs: list) -> List[ServiceResponse]:
+def generate_service_responses(question: str, k_docs: list, model: str="gpt-4o-mini") -> List[ServiceResponse]:
     from json import JSONDecodeError
     import json
     import re
@@ -80,7 +80,7 @@ def generate_service_responses(question: str, k_docs: list) -> List[ServiceRespo
 
     max_retries = 3
     for attempt in range(1, max_retries + 1):
-        response = call_llm_chat_gpt(service_system_prompt, user_prompt, max_tokens)
+        response = call_llm_chat_gpt(service_system_prompt, user_prompt, max_tokens, model)
         if response == "no":
             logger.info("LLM 응답: 'no' - 한국사 관련 질문이 아님")
             return []
