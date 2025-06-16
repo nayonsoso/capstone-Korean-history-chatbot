@@ -6,11 +6,11 @@ logger = logging.getLogger(__name__)
 
 from services.chroma_utils import find_k_docs, is_similar
 
-def find_k_documents(question: str, k:int = 3, threshold:float = 0.2) -> list:
+def find_k_documents(question: str, k:int = 3, threshold:float = 0.2, collection_name: str="k-history") -> list:
     logger.info(f"▶ 주제 관련성 검사 시작: 질문 - '{question}', K - {k}, 임계값 - {threshold}")
 
     # K개의 문서 검색
-    k_docs = find_k_docs(question, k)
+    k_docs = find_k_docs(question, k, collection_name)
 
     documents = k_docs.get('documents', [[]])[0]
     if not documents:

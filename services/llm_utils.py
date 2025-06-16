@@ -63,7 +63,7 @@ def call_llm_lg_ai(system_prompt: str, user_prompt: str, max_new_tokens: int, do
     logger.info(f"생성된 응답: {result}")
     return result
 
-def call_llm_chat_gpt(system_prompt: str, user_prompt: str, max_new_tokens: int) -> str:
+def call_llm_chat_gpt(system_prompt: str, user_prompt: str, max_new_tokens: int, mode_l: str="gpt-4o-mini") -> str:
     from openai import OpenAI
     from openai.types.chat import ChatCompletionSystemMessageParam, ChatCompletionUserMessageParam
 
@@ -76,7 +76,7 @@ def call_llm_chat_gpt(system_prompt: str, user_prompt: str, max_new_tokens: int)
     ]
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=mode_l,
         messages=messages,
         temperature=0.7,
         max_tokens=max_new_tokens,

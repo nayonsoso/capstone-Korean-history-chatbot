@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 # 전역 설정
 COLLECTION_NAME = "k-history"
+NEW_HISTORY_COLLECTION_NAME = "new-history"
 EMBED_MODEL_NAME = "intfloat/multilingual-e5-large"
 CHROMA_HOST = "localhost"
 CHROMA_PORT = 8000
@@ -26,16 +27,18 @@ embed_model = SentenceTransformer(EMBED_MODEL_NAME)
 
 def init_chroma():
     """애플리케이션 시작 시 ChromaDB에 컬렉션을 초기화"""
-    logger.info(f"▶ ChromaDB 초기화 시작: '{COLLECTION_NAME}' 컬렉션 확인")
+    logger.info(f"▶ ChromaDB 초기화 시작: '{NEW_HISTORY_COLLECTION_NAME}' 컬렉션 확인")
     try:
-        client.get_collection(name=COLLECTION_NAME)
-        logger.info(f"✔ 컬렉션 '{COLLECTION_NAME}' 이미 존재 — 초기화 스킵")
+        client.get_collection(name=NEW_HISTORY_COLLECTION_NAME)
+        logger.info(f"✔ 컬렉션 '{NEW_HISTORY_COLLECTION_NAME}' 이미 존재 — 초기화 스킵")
     except NotFoundError:
-        logger.info(f"✚ 컬렉션 '{COLLECTION_NAME}' 미발견 — 새로 생성")
-        collection = client.create_collection(name=COLLECTION_NAME)
+        logger.info(f"✚ 컬렉션 '{NEW_HISTORY_COLLECTION_NAME}' 미발견 — 새로 생성")
+        collection = client.create_collection(name=NEW_HISTORY_COLLECTION_NAME)
 
         # data/ 폴더 내 모든 .txt 파일을 읽어서 docs 리스트에 저장
-        txt_files = glob.glob("data/*.txt")
+        # txt_files = glob.glob("data/*.txt")
+        txt_files = glob.glob("data-new/*.txt")
+
         docs: List[str] = []
         metadatas: List[Dict[str, str]] = []
 
@@ -71,14 +74,14 @@ def init_chroma():
 
     logger.info("▶ ChromaDB 초기화 완료")
 
-def find_k_docs(query: str, k: int = 5) -> dict:
+def find_k_docs(query: str, k: int = 5, collection_name: str="k-history") -> dict:
     """주어진 쿼리에 대해 상위 k개의 문서를 검색"""
     logger.info(f"▶ ChromaDB에서 '{query}'에 대한 상위 {k}개 문서 검색")
 
     # 질문 임베딩
     q_emb = embed_model.encode([query]).tolist()[0]
 
-    collection = client.get_collection(name=COLLECTION_NAME)
+    collection = client.get_collection(name=collection_name)
     results = collection.query(
         query_embeddings=[q_emb],
         n_results=k
