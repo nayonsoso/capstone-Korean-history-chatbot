@@ -7,6 +7,7 @@ import chromadb
 from chromadb.config import Settings
 from chromadb.errors import NotFoundError
 from sentence_transformers import SentenceTransformer
+from sentence_transformers.util import cos_sim
 
 logger = logging.getLogger(__name__)
 
@@ -99,11 +100,9 @@ def is_similar(doc1: str, doc2: str, threshold: float) -> bool:
     logger.info(f"▶ '{doc1}'와 '{doc2}' 간 유사도 계산")
 
     # 쿼리 임베딩
-    doc1_emb = embed_model.encode([doc1], convert_to_tensor=True).tolist()[0]
-    doc2_emb = embed_model.encode([doc2], convert_to_tensor=True).tolist()[0]
+    doc1_emb, doc2_emb = embed_model.encode([doc1, doc2], convert_to_tensor=True)
 
     # 코사인 유사도 계산
-    from sentence_transformers.util import cos_sim
     similarity_tensor = cos_sim(doc1_emb, doc2_emb)
     similarity = similarity_tensor.item()
     logger.info(f"✔ 유사도 계산 완료: {similarity:.4f}")
