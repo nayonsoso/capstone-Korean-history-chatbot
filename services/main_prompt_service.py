@@ -43,7 +43,7 @@ combined_system_prompt = """
   ...
 ]
 
-문서에서 답을 찾을 수 없거나 문서의 내용과 모순될 경우, 배열이 아니라 `"no"` 문자열로 응답하라.
+문서에서 답을 찾을 수 없거나 문서의 내용과 모순될 경우, 배열이 아니라 no 문자열로 응답하라.
 
 ## 2단계: 위 단계적 응답을 요약
 다음으로, 위 단계적 응답(JSON 배열)을 요약하여 다음과 같은 형식의 JSON 객체를 작성하라:
@@ -64,7 +64,7 @@ combined_system_prompt = """
 }
 
 단, JSON의 모든 필드는 정확히 요구된 형식을 따르도록 하며, 검증되지 않은 형식으로는 제출하지 마라.
-문서 기반으로 유효한 응답이 불가능할 경우, 전체 응답은 "no" 문자열로 응답하라.
+문서 기반으로 유효한 응답이 불가능하거나, 한국사와 관련된 질문이 아닌 경우, 전체 응답은 "no" 문자열로 응답하라.
 """
 
 service_system_prompt = (
@@ -135,7 +135,7 @@ def generate_combined_response(question: str, k_docs: list) -> Optional[Response
     for attempt in range(1, max_retries + 1):
         response = call_llm_chat_gpt(combined_system_prompt, user_prompt, max_tokens)
 
-        if response == "no":
+        if response == "no" or response == "\"no\"" or response == "'no'":
             logger.info("LLM 응답: 'no' - 한국사 관련 질문이 아님")
             return None
 
