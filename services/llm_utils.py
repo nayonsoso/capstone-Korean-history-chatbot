@@ -60,7 +60,7 @@ def call_llm_lg_ai(system_prompt: str, user_prompt: str, max_new_tokens: int, do
         do_sample=do_sample
     )
     result = tokenizer.decode(output[0], skip_special_tokens=True)
-    logger.info(f"생성된 응답: {result}")
+    # logger.info(f"생성된 응답: {result}")
     return result
 
 def call_llm_chat_gpt(system_prompt: str, user_prompt: str, max_new_tokens: int) -> str:
@@ -84,5 +84,5 @@ def call_llm_chat_gpt(system_prompt: str, user_prompt: str, max_new_tokens: int)
     print(response.choices[0].message.content)
 
     content = response.choices[0].message.content
-    logger.info(f"생성된 응답: {content}")
+    # logger.info(f"생성된 응답: {content}")
     return content
