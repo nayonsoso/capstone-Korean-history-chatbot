@@ -7,7 +7,8 @@ from starlette.responses import JSONResponse
 from exception_handler import BadRequestException
 from schemas import QuestionRequest
 from services.chroma_service import find_k_documents, is_answer_related_to_hints
-from services.main_prompt_service import generate_service_responses, generate_summary_response
+from services.main_prompt_service import generate_service_responses, generate_summary_response, \
+    generate_combined_response
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -29,16 +30,15 @@ async def process_question(request: Request, response: Response,) -> JSONRespons
     if not session_id or session_id not in sessions: # 첫 질문
         # chroma db에서 유사한 질문 검색, 없으면 예외
         k_docs = find_k_documents(question)
-        response_list = generate_service_responses(question, k_docs)
+        combined_response = generate_combined_response(question, k_docs)
 
-        if not response_list:
+        if not combined_response:
             logger.info("✖ 관련된 답변을 찾을 수 없음")
             raise BadRequestException("한국사와 관련된 질문을 해줘!")
 
         # 새로운 세션 생성
         session_id = str(uuid.uuid4())  # 세션 아이디 생성
-        summary = generate_summary_response(response_list)
-        sessions[session_id] = {"count": 0, "response_list": response_list, "summary": summary}
+        sessions[session_id] = {"count": 0, "response_list": combined_response.service, "summary": combined_response.summary}
         new_session = True
         logger.info("✔ 새로운 세션 생성 : {}".format(session_id))
     else:

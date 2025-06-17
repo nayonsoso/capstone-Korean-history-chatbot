@@ -45,3 +45,7 @@ class SummaryTextResponse(BaseModel):
 class SummaryResponse(BaseModel):
     type: Literal["summary"] = "summary"
     text: SummaryTextResponse
+
+class ResponseWrapper(BaseModel):
+    service: List[ServiceResponse]
+    summary: SummaryResponse
